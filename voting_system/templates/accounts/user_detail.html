@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ viewed_user.get_full_name|default:viewed_user.username }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body text-center">
+                    {% if viewed_user.profile.photo %}
+                        <img src="{{ viewed_user.profile.photo.url }}" alt="Profile Photo" class="img-fluid rounded-circle mb-3" style="max-width: 200px;">
+                    {% else %}
+                        <img src="https://via.placeholder.com/200" alt="Default Profile" class="img-fluid rounded-circle mb-3">
+                    {% endif %}
+                    <h3 class="card-title">{{ viewed_user.get_full_name|default:viewed_user.username }}</h3>
+                    <p class="text-muted">{{ viewed_user.get_role_display }}</p>
+                    {% if viewed_user.faculty %}
+                        <p class="text-muted">{{ viewed_user.faculty.name }}</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-8">
+            {% if viewed_user.role == 'candidate' %}
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h4 class="card-title mb-0">Candidate Information</h4>
+                </div>
+                <div class="card-body">
+                    {% if viewed_user.profile.personal_statement %}
+                        <h5>Personal Statement</h5>
+                        <p>{{ viewed_user.profile.personal_statement }}</p>
+                    {% endif %}
+
+                    {% if viewed_user.profile.campaign_promises %}
+                        <h5>Campaign Promises</h5>
+                        <p>{{ viewed_user.profile.campaign_promises }}</p>
+                    {% endif %}
+
+                    {% if viewed_user.profile.is_general_candidate %}
+                        <span class="badge bg-info">General Candidate</span>
+                    {% else %}
+                        <span class="badge bg-primary">Faculty Candidate</span>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="card-title mb-0">About</h4>
+                </div>
+                <div class="card-body">
+                    {% if viewed_user.profile.bio %}
+                        {{ viewed_user.profile.bio }}
+                    {% else %}
+                        <p class="text-muted">No biography available.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,111 @@
+{% extends 'base.html' %}
+
+{% block title %}Elections{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <!-- Header Section -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Elections</h2>
+        {% if user.is_authenticated and user.role == 'admin' %}
+        <a href="{% url 'elections:create' %}" class="btn btn-primary">
+            <i class="fas fa-plus me-2"></i>Create Election
+        </a>
+        {% endif %}
+    </div>
+
+    <!-- Active Elections Section -->
+    <div class="mb-5">
+        <h3 class="mb-4">Active Elections</h3>
+        {% if active_elections %}
+        <div class="row">
+            {% for election in active_elections %}
+            <div class="col-md-6 col-lg-4 mb-4">
+                <div class="card h-100 shadow-sm">
+                    <div class="card-header bg-primary bg-opacity-10">
+                        <span class="badge bg-primary">Active</span>
+                        <small class="text-muted float-end">
+                            <i class="fas fa-clock me-1"></i>
+                            {% if election.end_date|timeuntil %}
+                                Ends in {{ election.end_date|timeuntil }}
+                            {% else %}
+                                Ending today
+                            {% endif %}
+                        </small>
+                    </div>
+                    <div class="card-body">
+                        <h5 class="card-title">{{ election.title }}</h5>
+                        <p class="card-text">{{ election.description|truncatewords:30 }}</p>
+                        <div class="d-grid gap-2">
+                            <a href="{% url 'elections:detail' election.pk %}" class="btn btn-primary">
+                                <i class="fas fa-info-circle me-2"></i>View Details
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="alert alert-info">
+            <i class="fas fa-info-circle me-2"></i>There are no active elections at the moment.
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Completed Elections Section -->
+    <div>
+        <h3 class="mb-4">Completed Elections</h3>
+        {% if completed_elections %}
+        <div class="row">
+            {% for election in completed_elections %}
+            <div class="col-md-6 col-lg-4 mb-4">
+                <div class="card h-100 shadow-sm">
+                    <div class="card-header bg-info bg-opacity-10">
+                        <span class="badge bg-info">Completed</span>
+                        <small class="text-muted float-end">
+                            <i class="fas fa-calendar-check me-1"></i>
+                            {{ election.end_date|date:"l, F j, Y" }}
+                        </small>
+                    </div>
+                    <div class="card-body">
+                        <h5 class="card-title">{{ election.title }}</h5>
+                        <p class="card-text">{{ election.description|truncatewords:30 }}</p>
+                        <div class="d-grid gap-2">
+                            <a href="{% url 'elections:election_results' election.pk %}" class="btn btn-info">
+                                <i class="fas fa-chart-bar me-2"></i>View Results
+                            </a>
+                            <a href="{% url 'elections:detail' election.pk %}" class="btn btn-outline-secondary">
+                                <i class="fas fa-info-circle me-2"></i>View Details
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="alert alert-info">
+            <i class="fas fa-info-circle me-2"></i>There are no completed elections yet.
+        </div>
+        {% endif %}
+    </div>
+
+    {% if user.is_authenticated and user.role == 'candidate' %}
+    <!-- Candidate Registration Card -->
+    <div class="card mt-4">
+        <div class="card-body">
+            <div class="d-flex align-items-center">
+                <div class="flex-grow-1">
+                    <h5 class="card-title mb-1">Want to Run in an Election?</h5>
+                    <p class="card-text text-muted mb-0">If you're eligible, you can register as a candidate for any active election.</p>
+                </div>
+                <a href="{% url 'elections:register_candidate' %}" class="btn btn-success ms-3">
+                    <i class="fas fa-user-plus me-2"></i>Register as Candidate
+                </a>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

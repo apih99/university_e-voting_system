@@ -1,0 +1,114 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}
+    {% if form.instance.pk %}Edit Election{% else %}Create New Election{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h2 class="h4 mb-0">
+                        {% if form.instance.pk %}
+                            Edit Election: {{ form.instance.title }}
+                        {% else %}
+                            Create New Election
+                        {% endif %}
+                    </h2>
+                </div>
+                <div class="card-body">
+                    <form method="post" class="needs-validation" novalidate>
+                        {% csrf_token %}
+                        
+                        <div class="row">
+                            <div class="col-12 mb-3">
+                                {{ form.title|as_crispy_field }}
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-12 mb-3">
+                                {{ form.description|as_crispy_field }}
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                {{ form.start_date|as_crispy_field }}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                {{ form.end_date|as_crispy_field }}
+                            </div>
+                        </div>
+
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a href="{% url 'elections:list' %}" class="btn btn-secondary me-md-2">Cancel</a>
+                            <button type="submit" class="btn btn-primary">
+                                {% if form.instance.pk %}Update{% else %}Create{% endif %} Election
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            {% if form.instance.pk %}
+            <div class="card mt-4">
+                <div class="card-header bg-info text-white">
+                    <h3 class="h5 mb-0">Election Management</h3>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h4 class="h6">Current Status</h4>
+                            <p class="mb-3">
+                                <span class="badge {% if form.instance.is_active %}bg-success{% else %}bg-warning{% endif %}">
+                                    {% if form.instance.is_active %}Active{% else %}Inactive{% endif %}
+                                </span>
+                            </p>
+                        </div>
+                        <div class="col-md-6">
+                            <h4 class="h6">Actions</h4>
+                            <form method="post" action="{% url 'elections:toggle_status' form.instance.pk %}" class="d-inline">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-sm {% if form.instance.is_active %}btn-warning{% else %}btn-success{% endif %}">
+                                    {% if form.instance.is_active %}Deactivate{% else %}Activate{% endif %} Election
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<script>
+    // Add validation for datetime-local inputs
+    document.addEventListener('DOMContentLoaded', function() {
+        const startDate = document.getElementById('id_start_date');
+        const endDate = document.getElementById('id_end_date');
+
+        startDate.addEventListener('change', function() {
+            if (endDate.value && startDate.value >= endDate.value) {
+                startDate.setCustomValidity('Start date must be before end date');
+            } else {
+                startDate.setCustomValidity('');
+            }
+        });
+
+        endDate.addEventListener('change', function() {
+            if (startDate.value && startDate.value >= endDate.value) {
+                endDate.setCustomValidity('End date must be after start date');
+            } else {
+                endDate.setCustomValidity('');
+            }
+        });
+    });
+</script>
+{% endblock %}
+{% endblock %}

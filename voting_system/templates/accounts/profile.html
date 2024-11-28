@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}Profile - {{ user.username }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body">
+                {% if user.profile.photo %}
+                    <img src="{{ user.profile.photo.url }}" alt="Profile Photo" class="img-fluid rounded-circle mb-3">
+                {% else %}
+                    <img src="https://via.placeholder.com/150" alt="Default Profile" class="img-fluid rounded-circle mb-3">
+                {% endif %}
+                <h4 class="card-title">{{ user.get_full_name|default:user.username }}</h4>
+                <p class="text-muted">{{ user.get_role_display }}</p>
+                <p class="text-muted">Faculty: {{ user.faculty.name }}</p>
+                <p class="text-muted">Student ID: {{ user.student_id }}</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Update Profile</h5>
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    {{ form|crispy }}
+                    <button type="submit" class="btn btn-primary">Update Profile</button>
+                </form>
+            </div>
+        </div>
+
+        {% if user.role == 'candidate' %}
+        <div class="card mt-4">
+            <div class="card-body">
+                <h5 class="card-title">Candidate Information</h5>
+                <p>{{ user.profile.personal_statement }}</p>
+                <a href="{% url 'accounts:candidate_profile' %}" class="btn btn-secondary">
+                    Update Candidate Profile
+                </a>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

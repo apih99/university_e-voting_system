@@ -1,0 +1,286 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ election.title }}{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <div class="col-md-8">
+            <!-- Election Details -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-body">
+                    <h2 class="card-title">{{ election.title }}</h2>
+                    <div class="text-muted mb-3">
+                        <i class="fas fa-calendar"></i> Start: {{ election.start_date|date:"M d, Y H:i" }}<br>
+                        <i class="fas fa-calendar-check"></i> End: {{ election.end_date|date:"M d, Y H:i" }}
+                    </div>
+                    <p class="card-text">{{ election.description }}</p>
+
+                    {% if user.is_authenticated %}
+                        {% if user.role == 'admin' %}
+                            <div class="mb-3">
+                                <div class="d-flex gap-2">
+                                    {% if not election.has_ended %}
+                                        <a href="{% url 'elections:end_election' election.pk %}" class="btn btn-danger">
+                                            <i class="fas fa-flag-checkered me-2"></i>End Election
+                                        </a>
+                                    {% endif %}
+                                    <a href="{% url 'elections:edit' election.pk %}" class="btn btn-primary">
+                                        <i class="fas fa-edit me-2"></i>Edit Election
+                                    </a>
+                                    <a href="{% url 'elections:election_results' election.pk %}" class="btn btn-info">
+                                        <i class="fas fa-chart-bar me-2"></i>View Results
+                                    </a>
+                                </div>
+                            </div>
+                        {% elif user.role == 'voter' %}
+                            {% if election.end_date < now or user.role == 'admin' %}
+                                <div class="d-grid gap-2 mb-3">
+                                    <a href="{% url 'elections:election_results' election.pk %}" class="btn btn-info btn-lg">
+                                        <i class="fas fa-chart-bar me-2"></i> View Election Results
+                                    </a>
+                                </div>
+                            {% endif %}
+                            
+                            {% if user.role == 'voter' %}
+                                {% if has_voted %}
+                                    <div class="alert alert-success">
+                                        <i class="fas fa-check-circle me-2"></i> You have already voted in this election.
+                                    </div>
+                                {% else %}
+                                    <div class="d-grid gap-2">
+                                        <a href="{% url 'elections:election_vote' election.pk %}" class="btn btn-primary btn-lg">
+                                            <i class="fas fa-vote-yea me-2"></i> Cast Your Vote
+                                        </a>
+                                    </div>
+                                {% endif %}
+                            {% elif user.role == 'candidate' %}
+                                {% if is_candidate %}
+                                    <div class="alert alert-info">
+                                        <i class="fas fa-info-circle me-2"></i> 
+                                        Your candidacy status: 
+                                        {% if is_approved %}
+                                            <span class="badge bg-success">Approved</span>
+                                        {% else %}
+                                            <span class="badge bg-warning">Pending Approval</span>
+                                        {% endif %}
+                                    </div>
+                                {% else %}
+                                    <div class="d-grid gap-2">
+                                        <a href="{% url 'elections:register_candidate' %}" class="btn btn-success btn-lg">
+                                            <i class="fas fa-user-plus me-2"></i> Register as Candidate
+                                        </a>
+                                    </div>
+                                {% endif %}
+                            {% endif %}
+
+                            {% if election.end_date < now or user.role == 'admin' %}
+                                <div class="mt-3">
+                                    <a href="{% url 'elections:election_results' election.pk %}" class="btn btn-info">
+                                        <i class="fas fa-chart-bar me-2"></i> View Results
+                                    </a>
+                                </div>
+                            {% endif %}
+                        {% endif %}
+                    {% else %}
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i> Please sign in to participate in this election.
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Candidates Section -->
+            {% if election.candidate_set.exists %}
+            <div class="card shadow-sm">
+                <div class="card-header bg-light">
+                    <h4 class="mb-0">Candidates</h4>
+                </div>
+                <div class="card-body">
+                    <!-- Faculty Candidates -->
+                    {% if faculty_candidates %}
+                    <div class="mb-4">
+                        <h5 class="border-bottom pb-2">Faculty Representatives</h5>
+                        <div class="row g-3">
+                            {% for candidate in faculty_candidates %}
+                            <div class="col-md-6">
+                                <div class="card h-100 candidate-card">
+                                    <div class="card-body">
+                                        <div class="d-flex align-items-center mb-3">
+                                            {% if candidate.photo %}
+                                                <img src="{{ candidate.photo.url }}" alt="Candidate Photo" 
+                                                     class="rounded-circle me-3" style="width: 64px; height: 64px; object-fit: cover;">
+                                            {% else %}
+                                                <div class="rounded-circle bg-light me-3 d-flex align-items-center justify-content-center" 
+                                                     style="width: 64px; height: 64px;">
+                                                    <i class="fas fa-user text-muted fa-2x"></i>
+                                                </div>
+                                            {% endif %}
+                                            <div>
+                                                <h5 class="card-title mb-1">{{ candidate.user.get_full_name|default:candidate.user.username }}</h5>
+                                                <p class="text-muted mb-0">{{ candidate.user.faculty.name }}</p>
+                                            </div>
+                                        </div>
+                                        {% if candidate.manifesto %}
+                                        <div class="mt-2">
+                                            <button type="button" class="btn btn-sm btn-outline-primary w-100" 
+                                                    data-bs-toggle="modal" 
+                                                    data-bs-target="#manifestoModal{{ candidate.id }}">
+                                                <i class="fas fa-scroll me-2"></i>View Manifesto
+                                            </button>
+                                        </div>
+
+                                        <!-- Manifesto Modal -->
+                                        <div class="modal fade" id="manifestoModal{{ candidate.id }}" tabindex="-1">
+                                            <div class="modal-dialog">
+                                                <div class="modal-content">
+                                                    <div class="modal-header">
+                                                        <h5 class="modal-title">{{ candidate.user.get_full_name }}'s Manifesto</h5>
+                                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                                    </div>
+                                                    <div class="modal-body">
+                                                        {{ candidate.manifesto|linebreaks }}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- General Candidates -->
+                    {% if general_candidates %}
+                    <div>
+                        <h5 class="border-bottom pb-2">General Positions</h5>
+                        <div class="row g-3">
+                            {% for candidate in general_candidates %}
+                            <div class="col-md-6">
+                                <div class="card h-100 candidate-card">
+                                    <div class="card-body">
+                                        <div class="d-flex align-items-center mb-3">
+                                            {% if candidate.photo %}
+                                                <img src="{{ candidate.photo.url }}" alt="Candidate Photo" 
+                                                     class="rounded-circle me-3" style="width: 64px; height: 64px; object-fit: cover;">
+                                            {% else %}
+                                                <div class="rounded-circle bg-light me-3 d-flex align-items-center justify-content-center" 
+                                                     style="width: 64px; height: 64px;">
+                                                    <i class="fas fa-user text-muted fa-2x"></i>
+                                                </div>
+                                            {% endif %}
+                                            <div>
+                                                <h5 class="card-title mb-1">{{ candidate.user.get_full_name|default:candidate.user.username }}</h5>
+                                                <p class="text-muted mb-0">General Position</p>
+                                            </div>
+                                        </div>
+                                        {% if candidate.manifesto %}
+                                        <div class="mt-2">
+                                            <button type="button" class="btn btn-sm btn-outline-primary w-100" 
+                                                    data-bs-toggle="modal" 
+                                                    data-bs-target="#manifestoModal{{ candidate.id }}">
+                                                <i class="fas fa-scroll me-2"></i>View Manifesto
+                                            </button>
+                                        </div>
+
+                                        <!-- Manifesto Modal -->
+                                        <div class="modal fade" id="manifestoModal{{ candidate.id }}" tabindex="-1">
+                                            <div class="modal-dialog">
+                                                <div class="modal-content">
+                                                    <div class="modal-header">
+                                                        <h5 class="modal-title">{{ candidate.user.get_full_name }}'s Manifesto</h5>
+                                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                                    </div>
+                                                    <div class="modal-body">
+                                                        {{ candidate.manifesto|linebreaks }}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% else %}
+            <div class="card shadow-sm">
+                <div class="card-body text-center py-5">
+                    <i class="fas fa-users text-muted fa-3x mb-3"></i>
+                    <h4>No Candidates Yet</h4>
+                    <p class="text-muted mb-0">There are currently no approved candidates for this election.</p>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Election Info Sidebar -->
+        <div class="col-md-4">
+            <div class="card shadow-sm">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">Election Information</h5>
+                </div>
+                <div class="card-body">
+                    <ul class="list-unstyled mb-0">
+                        <li class="mb-3">
+                            <i class="fas fa-clock text-primary me-2"></i>
+                            <strong>Status:</strong>
+                            {% if election.is_active %}
+                                {% if election.start_date > now %}
+                                    <span class="badge bg-info">Upcoming</span>
+                                {% elif election.end_date < now %}
+                                    <span class="badge bg-secondary">Ended</span>
+                                {% else %}
+                                    <span class="badge bg-success">Active</span>
+                                {% endif %}
+                            {% else %}
+                                <span class="badge bg-danger">Inactive</span>
+                            {% endif %}
+                        </li>
+                        <li class="mb-3">
+                            <i class="fas fa-users text-primary me-2"></i>
+                            <strong>Total Candidates:</strong>
+                            {{ total_approved_candidates }}
+                        </li>
+                        {% if election.end_date < now %}
+                        <li>
+                            <i class="fas fa-chart-pie text-primary me-2"></i>
+                            <strong>Total Votes Cast:</strong>
+                            {{ election.vote_set.count }}
+                        </li>
+                        {% endif %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.candidate-card {
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.candidate-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.modal-dialog {
+    max-width: 500px;
+}
+
+@media (max-width: 768px) {
+    .candidate-card {
+        margin-bottom: 1rem;
+    }
+}
+</style>
+{% endblock %}

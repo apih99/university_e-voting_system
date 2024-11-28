@@ -1,0 +1,136 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard - {{ user.username }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h2 class="mb-4">Dashboard</h2>
+
+    {% if user.role == 'admin' %}
+    <!-- Admin Dashboard -->
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card bg-primary text-white mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">Total Voters</h5>
+                    <h2 class="display-4">{{ total_voters }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card bg-success text-white mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">Total Candidates</h5>
+                    <h2 class="display-4">{{ total_candidates }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card bg-info text-white mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">Active Elections</h5>
+                    <h2 class="display-4">{{ active_elections }}</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Quick Actions</h5>
+                    <div class="btn-group">
+                        <a href="{% url 'admin:index' %}" class="btn btn-primary">Admin Panel</a>
+                        <a href="{% url 'elections:create' %}" class="btn btn-success">Create Election</a>
+                        <a href="{% url 'elections:results' %}" class="btn btn-info">View Results</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% elif user.role == 'voter' %}
+    <!-- Voter Dashboard -->
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Your Voting History</h5>
+                    {% if votes %}
+                    <div class="list-group">
+                        {% for vote in votes %}
+                        <div class="list-group-item">
+                            <h6 class="mb-1">{{ vote.election.title }}</h6>
+                            <p class="mb-1">Voted on: {{ vote.timestamp }}</p>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <p>You haven't participated in any elections yet.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Quick Links</h5>
+                    <div class="list-group">
+                        <a href="{% url 'elections:active' %}" class="list-group-item list-group-item-action">
+                            Active Elections
+                        </a>
+                        <a href="{% url 'accounts:profile' %}" class="list-group-item list-group-item-action">
+                            Update Profile
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% elif user.role == 'candidate' %}
+    <!-- Candidate Dashboard -->
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Your Elections</h5>
+                    {% if elections %}
+                    <div class="list-group">
+                        {% for candidacy in elections %}
+                        <div class="list-group-item">
+                            <h6 class="mb-1">{{ candidacy.election.title }}</h6>
+                            <p class="mb-1">Status: {% if candidacy.approved %}Approved{% else %}Pending Approval{% endif %}</p>
+                            {% if candidacy.election.is_active %}
+                            <span class="badge bg-success">Active</span>
+                            {% else %}
+                            <span class="badge bg-secondary">Inactive</span>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <p>You are not registered as a candidate in any elections.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Quick Links</h5>
+                    <div class="list-group">
+                        <a href="{% url 'accounts:candidate_profile' %}" class="list-group-item list-group-item-action">
+                            Update Candidate Profile
+                        </a>
+                        <a href="{% url 'elections:results' %}" class="list-group-item list-group-item-action">
+                            View Results
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,268 @@
+{% extends "admin/base.html" %}
+{% load static %}
+
+{% block title %}{{ title }} | {{ site_title|default:_('University Voting System') }}{% endblock %}
+
+{% block extrastyle %}
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+    :root {
+        --bg-dark: #1a1b1e;
+        --bg-darker: #141517;
+        --bg-card: #222327;
+        --bg-hover: #2c2e33;
+        --primary: #3d8aff;
+        --primary-dark: #2d6bc7;
+        --accent: #3d8aff;
+        --text-primary: #e4e6eb;
+        --text-secondary: #b0b3b8;
+        --border-color: #2c2e33;
+        --success: #00c853;
+        --warning: #ffd600;
+        --error: #ff1744;
+        --shadow-color: rgba(0, 0, 0, 0.3);
+    }
+
+    body {
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        background: var(--bg-dark);
+        color: var(--text-primary);
+        line-height: 1.6;
+    }
+
+    /* Header */
+    #header {
+        background: var(--bg-darker);
+        color: var(--text-primary);
+        padding: 15px 40px;
+        box-shadow: 0 2px 8px var(--shadow-color);
+    }
+
+    #header #branding h1 {
+        font-weight: 600;
+    }
+
+    /* Module headers */
+    .module h2, .module caption, .inline-group h2 {
+        background: var(--bg-card);
+        color: var(--text-primary);
+        padding: 16px;
+        border-bottom: 1px solid var(--border-color);
+        font-weight: 600;
+        font-size: 1.1rem;
+    }
+
+    /* Links */
+    a:link, a:visited {
+        color: var(--primary);
+        text-decoration: none;
+        transition: color 0.2s;
+    }
+
+    a:hover {
+        color: var(--accent);
+    }
+
+    /* Buttons */
+    .button, input[type=submit], input[type=button], .submit-row input, a.button {
+        background: var(--primary);
+        color: var(--text-primary);
+        border-radius: 6px;
+        padding: 10px 20px;
+        border: none;
+        font-weight: 500;
+        transition: all 0.2s;
+    }
+
+    .button:hover, input[type=submit]:hover, input[type=button]:hover {
+        background: var(--primary-dark);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px var(--shadow-color);
+    }
+
+    /* Content */
+    #content {
+        padding: 25px 40px;
+        background: var(--bg-dark);
+    }
+
+    /* Cards and Modules */
+    .module {
+        background: var(--bg-card);
+        border-radius: 8px;
+        box-shadow: 0 4px 12px var(--shadow-color);
+        border: 1px solid var(--border-color);
+        margin-bottom: 24px;
+        overflow: hidden;
+    }
+
+    /* Forms */
+    .form-row {
+        padding: 16px;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .form-row input, .form-row select, .form-row textarea {
+        background: var(--bg-dark);
+        border: 1px solid var(--border-color);
+        border-radius: 4px;
+        padding: 8px 12px;
+        color: var(--text-primary);
+        transition: all 0.2s;
+    }
+
+    .form-row input:focus, .form-row select:focus, .form-row textarea:focus {
+        border-color: var(--primary);
+        outline: none;
+        box-shadow: 0 0 0 2px rgba(61, 138, 255, 0.2);
+        background: var(--bg-darker);
+    }
+
+    /* Breadcrumbs */
+    div.breadcrumbs {
+        background: var(--bg-darker);
+        padding: 15px 40px;
+        border-bottom: 1px solid var(--border-color);
+        color: var(--text-secondary);
+        box-shadow: 0 1px 2px var(--shadow-color);
+    }
+
+    div.breadcrumbs a {
+        color: var(--primary);
+    }
+
+    /* List views */
+    #changelist {
+        background: var(--bg-card);
+        border-radius: 8px;
+        box-shadow: 0 4px 12px var(--shadow-color);
+    }
+
+    #changelist .actions {
+        padding: 15px;
+        background: var(--bg-darker);
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    #changelist-filter {
+        background: var(--bg-card);
+        border-left: 1px solid var(--border-color);
+    }
+
+    #changelist-filter h2 {
+        background: var(--bg-darker);
+        border-bottom: 1px solid var(--border-color);
+        padding: 12px 15px;
+        font-weight: 600;
+    }
+
+    /* Tables */
+    table {
+        border-collapse: separate;
+        border-spacing: 0;
+        width: 100%;
+    }
+
+    td, th {
+        padding: 12px;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    th {
+        background: var(--bg-darker);
+        font-weight: 600;
+        color: var(--text-primary);
+    }
+
+    tr:hover {
+        background: var(--bg-hover);
+    }
+
+    /* Messages */
+    .messagelist {
+        padding: 0;
+    }
+
+    .messagelist li {
+        padding: 12px 40px;
+        margin: 0;
+        border-bottom: 1px solid var(--border-color);
+        background: var(--bg-card);
+    }
+
+    .messagelist li.success {
+        background: rgba(0, 200, 83, 0.1);
+        color: var(--success);
+    }
+
+    .messagelist li.warning {
+        background: rgba(255, 214, 0, 0.1);
+        color: var(--warning);
+    }
+
+    .messagelist li.error {
+        background: rgba(255, 23, 68, 0.1);
+        color: var(--error);
+    }
+
+    /* Responsive improvements */
+    @media (max-width: 1024px) {
+        #content {
+            padding: 20px;
+        }
+        
+        #header {
+            padding: 15px 20px;
+        }
+        
+        div.breadcrumbs {
+            padding: 15px 20px;
+        }
+    }
+
+    @media (max-width: 767px) {
+        #content {
+            padding: 15px;
+        }
+        
+        .form-row {
+            padding: 12px;
+        }
+    }
+
+    /* Dark theme specific styles */
+    select {
+        background: var(--bg-dark);
+        color: var(--text-primary);
+        border: 1px solid var(--border-color);
+    }
+
+    select:focus {
+        background: var(--bg-darker);
+    }
+
+    .object-tools a {
+        background: var(--primary);
+    }
+
+    .object-tools a:hover {
+        background: var(--primary-dark);
+    }
+
+    .addlink, .changelink, .deletelink {
+        color: var(--primary);
+    }
+
+    .addlink:hover, .changelink:hover, .deletelink:hover {
+        color: var(--accent);
+    }
+</style>
+{% endblock %}
+
+{% block branding %}
+<h1 id="site-name">
+    <a href="{% url 'admin:index' %}">
+        {{ site_header|default:_('University Voting System Administration') }}
+    </a>
+</h1>
+{% endblock %}

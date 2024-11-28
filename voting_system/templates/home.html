@@ -1,0 +1,238 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}University Voting System - Home{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <!-- Hero Section -->
+    <div class="row mb-5 align-items-center">
+        <div class="col-lg-6">
+            <h1 class="display-4 fw-bold text-primary mb-3">Your Voice Matters!</h1>
+            <p class="lead mb-4">Welcome to the UPNM MPP Elections platform. Make your vote count in shaping the future of our university.</p>
+            {% if not user.is_authenticated %}
+            <div class="d-grid gap-2 d-md-flex">
+                <a href="{% url 'account_signup' %}" class="btn btn-primary btn-lg px-4 me-md-2">Register Now</a>
+                <a href="{% url 'account_login' %}" class="btn btn-outline-secondary btn-lg px-4">Sign In</a>
+            </div>
+            {% endif %}
+        </div>
+        <div class="col-lg-6">
+            <img src="{% static 'images/voting.svg' %}" alt="Voting Illustration" class="img-fluid">
+        </div>
+    </div>
+
+    {% if user.is_authenticated %}
+    <!-- User Dashboard -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <h2 class="mb-4">Your Dashboard</h2>
+        </div>
+        {% if user.role == 'voter' %}
+        <!-- Voter Dashboard -->
+        <div class="col-md-4">
+            <div class="card h-100 border-primary">
+                <div class="card-body text-center">
+                    <i class="fas fa-vote-yea fa-3x text-primary mb-3"></i>
+                    <h3>Cast Your Vote</h3>
+                    <p>Participate in active elections and make your voice heard.</p>
+                    <a href="{% url 'elections:list' %}" class="btn btn-primary">View Active Elections</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card h-100 border-success">
+                <div class="card-body text-center">
+                    <i class="fas fa-user-circle fa-3x text-success mb-3"></i>
+                    <h3>Your Profile</h3>
+                    <p>Update your information and verify your student status.</p>
+                    <a href="{% url 'accounts:profile' %}" class="btn btn-success">Manage Profile</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card h-100 border-info">
+                <div class="card-body text-center">
+                    <i class="fas fa-chart-bar fa-3x text-info mb-3"></i>
+                    <h3>Election Results</h3>
+                    <p>View the outcomes of completed elections.</p>
+                    <div class="d-grid gap-2">
+                        <a href="#completed-elections" class="btn btn-info">Latest Results</a>
+                        <a href="{% url 'elections:list' %}" class="btn btn-outline-info">All Elections</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% elif user.role == 'candidate' %}
+        <!-- Candidate Dashboard -->
+        <div class="col-md-6">
+            <div class="card h-100 border-primary">
+                <div class="card-body text-center">
+                    <i class="fas fa-user-tie fa-3x text-primary mb-3"></i>
+                    <h3>Your Candidacy</h3>
+                    <p>Manage your election campaigns and monitor your status.</p>
+                    <a href="{% url 'elections:list' %}" class="btn btn-primary">View Elections</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card h-100 border-success">
+                <div class="card-body text-center">
+                    <i class="fas fa-edit fa-3x text-success mb-3"></i>
+                    <h3>Campaign Profile</h3>
+                    <p>Update your candidate profile and campaign statement.</p>
+                    <a href="{% url 'accounts:profile' %}" class="btn btn-success">Edit Profile</a>
+                </div>
+            </div>
+        </div>
+        {% elif user.role == 'admin' %}
+        <!-- Admin Dashboard -->
+        <div class="col-md-4">
+            <div class="card h-100 border-primary">
+                <div class="card-body text-center">
+                    <i class="fas fa-cogs fa-3x text-primary mb-3"></i>
+                    <h3>Administration</h3>
+                    <p>Manage elections, users, and system settings.</p>
+                    <a href="{% url 'admin:index' %}" class="btn btn-primary">Admin Panel</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card h-100 border-success">
+                <div class="card-body text-center">
+                    <i class="fas fa-plus-circle fa-3x text-success mb-3"></i>
+                    <h3>Create Election</h3>
+                    <p>Set up new elections and manage candidates.</p>
+                    <a href="{% url 'elections:create' %}" class="btn btn-success">New Election</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card h-100 border-info">
+                <div class="card-body text-center">
+                    <i class="fas fa-chart-line fa-3x text-info mb-3"></i>
+                    <h3>Analytics</h3>
+                    <p>View election statistics and voter turnout.</p>
+                    <a href="{% url 'admin:elections_election_changelist' %}" class="btn btn-info">View Stats</a>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    {% if active_elections %}
+    <!-- Active Elections Section -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2 class="mb-0">Active Elections</h2>
+                <a href="{% url 'elections:list' %}" class="btn btn-outline-primary">
+                    <i class="fas fa-list me-2"></i>View All Elections
+                </a>
+            </div>
+        </div>
+        {% for election in active_elections %}
+        <div class="col-md-6 col-lg-4 mb-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">{{ election.title }}</h5>
+                    <p class="card-text text-muted small">
+                        <i class="fas fa-clock me-1"></i>
+                        Ends {{ election.end_date|timeuntil }} from now
+                    </p>
+                    <p class="card-text">{{ election.description|truncatewords:30 }}</p>
+                    <div class="d-grid">
+                        <a href="{% url 'elections:detail' election.pk %}" class="btn btn-primary">
+                            <i class="fas fa-vote-yea me-2"></i>View Details
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    {% if completed_elections %}
+    <!-- Completed Elections Section -->
+    <div class="row mb-5" id="completed-elections">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2 class="mb-0">Latest Results</h2>
+                <a href="{% url 'elections:list' %}" class="btn btn-outline-info">
+                    <i class="fas fa-chart-bar me-2"></i>View All Results
+                </a>
+            </div>
+        </div>
+        {% for election in completed_elections %}
+        <div class="col-md-6 col-lg-4 mb-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-header bg-info bg-opacity-10 d-flex justify-content-between align-items-center">
+                    <span class="badge bg-info">Completed</span>
+                    <small class="text-muted">{{ election.end_date|date:"M d, Y" }}</small>
+                </div>
+                <div class="card-body">
+                    <h5 class="card-title">{{ election.title }}</h5>
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div class="text-muted small">
+                            <i class="fas fa-users me-1"></i>
+                            {{ election.total_votes }} vote{{ election.total_votes|pluralize }}
+                        </div>
+                    </div>
+                    <div class="d-grid">
+                        <a href="{% url 'elections:election_results' election.pk %}" class="btn btn-info">
+                            <i class="fas fa-chart-pie me-2"></i>View Results
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- How It Works Section -->
+    <div class="row">
+        <div class="col-12">
+            <h2 class="mb-4">How It Works</h2>
+        </div>
+        <div class="col-md-3">
+            <div class="text-center mb-4">
+                <div class="bg-light rounded-circle d-inline-block p-3 mb-3">
+                    <i class="fas fa-user-plus fa-2x text-primary"></i>
+                </div>
+                <h4>1. Register</h4>
+                <p>Sign up with your student ID and verify your account</p>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="text-center mb-4">
+                <div class="bg-light rounded-circle d-inline-block p-3 mb-3">
+                    <i class="fas fa-list-alt fa-2x text-success"></i>
+                </div>
+                <h4>2. View Elections</h4>
+                <p>Browse active elections and review candidates</p>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="text-center mb-4">
+                <div class="bg-light rounded-circle d-inline-block p-3 mb-3">
+                    <i class="fas fa-vote-yea fa-2x text-info"></i>
+                </div>
+                <h4>3. Cast Vote</h4>
+                <p>Select your preferred candidates and submit your ballot</p>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="text-center mb-4">
+                <div class="bg-light rounded-circle d-inline-block p-3 mb-3">
+                    <i class="fas fa-chart-bar fa-2x text-warning"></i>
+                </div>
+                <h4>4. View Results</h4>
+                <p>Check election results after voting ends</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

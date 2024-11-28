@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}Candidate Profile - {{ user.username }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title mb-0">Update Candidate Profile</h3>
+                </div>
+                <div class="card-body">
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        
+                        <div class="row">
+                            <div class="col-md-4">
+                                {% if user.profile.photo %}
+                                    <img src="{{ user.profile.photo.url }}" alt="Profile Photo" class="img-fluid rounded-circle mb-3">
+                                {% else %}
+                                    <img src="https://via.placeholder.com/150" alt="Default Profile" class="img-fluid rounded-circle mb-3">
+                                {% endif %}
+                            </div>
+                            <div class="col-md-8">
+                                {{ form|crispy }}
+                            </div>
+                        </div>
+
+                        <div class="alert alert-info">
+                            <h5>Important Information</h5>
+                            <ul>
+                                <li>Your personal statement should highlight your qualifications and vision.</li>
+                                <li>Campaign promises should be realistic and achievable.</li>
+                                <li>If you're running as a general candidate, make sure to check the appropriate box.</li>
+                            </ul>
+                        </div>
+
+                        <div class="text-end">
+                            <a href="{% url 'accounts:profile' %}" class="btn btn-secondary">Cancel</a>
+                            <button type="submit" class="btn btn-primary">Update Profile</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

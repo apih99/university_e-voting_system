@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+
+{% block title %}End Election - {{ election.title }}{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header bg-danger text-white">
+                    <h4 class="mb-0"><i class="fas fa-exclamation-triangle me-2"></i>End Election Confirmation</h4>
+                </div>
+                <div class="card-body">
+                    <h5 class="card-title mb-4">Are you sure you want to end this election?</h5>
+                    
+                    <div class="alert alert-warning">
+                        <h6 class="alert-heading"><i class="fas fa-info-circle me-2"></i>Important Information</h6>
+                        <ul class="mb-0">
+                            <li>This action cannot be undone</li>
+                            <li>All voting will be stopped immediately</li>
+                            <li>Results will be made available according to election settings</li>
+                        </ul>
+                    </div>
+
+                    <div class="mb-4">
+                        <h6>Election Details:</h6>
+                        <p class="mb-1"><strong>Title:</strong> {{ election.title }}</p>
+                        <p class="mb-1"><strong>Original End Date:</strong> {{ election.end_date|date:"l, F j, Y \a\t g:i A" }}</p>
+                        <p class="mb-0"><strong>Time Remaining:</strong> {{ election.end_date|timeuntil }}</p>
+                    </div>
+
+                    <form method="post" class="d-flex justify-content-end gap-2">
+                        {% csrf_token %}
+                        <a href="{% url 'elections:election_detail' election.pk %}" class="btn btn-secondary">
+                            <i class="fas fa-times me-2"></i>Cancel
+                        </a>
+                        <button type="submit" class="btn btn-danger">
+                            <i class="fas fa-flag-checkered me-2"></i>End Election Now
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

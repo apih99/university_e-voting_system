@@ -1,0 +1,209 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}Results - {{ election.title }}{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+            <!-- Election Info -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-primary text-white">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h3 class="mb-0">Election Results: {{ election.title }}</h3>
+                        <small>
+                            {% if election.has_ended %}
+                                Ended {{ election.end_date|timesince }} ago
+                            {% else %}
+                                Ends in {{ election.end_date|timeuntil }}
+                            {% endif %}
+                        </small>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <div class="text-muted">
+                            <i class="fas fa-calendar"></i> Start: {{ election.start_date|date:"l, F j, Y \a\t g:i A" }}<br>
+                            <i class="fas fa-calendar-check"></i> End: {{ election.end_date|date:"l, F j, Y \a\t g:i A" }}
+                        </div>
+                    </div>
+                    <div class="row g-4">
+                        <div class="col-md-4">
+                            <div class="text-center p-3 border rounded">
+                                <h4 class="mb-3">Total Votes</h4>
+                                <h2 class="display-4 mb-0">{{ result_data.total_voters }}</h2>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="text-center p-3 border rounded">
+                                <h4 class="mb-3">Faculty Votes</h4>
+                                <h2 class="display-4 mb-0">{{ result_data.total_faculty_votes }}</h2>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="text-center p-3 border rounded">
+                                <h4 class="mb-3">General Votes</h4>
+                                <h2 class="display-4 mb-0">{{ result_data.total_general_votes }}</h2>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Filter Form -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-body">
+                    <form method="get" class="row g-3">
+                        {{ form|crispy }}
+                        <div class="col-12">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-filter me-2"></i>Apply Filters
+                            </button>
+                            <a href="?" class="btn btn-outline-secondary">
+                                <i class="fas fa-times me-2"></i>Clear Filters
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Faculty Results -->
+            {% if result_data.faculty_wise_results %}
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-light">
+                    <h4 class="mb-0">Faculty Representatives</h4>
+                </div>
+                <div class="card-body">
+                    {% for faculty, candidates in result_data.faculty_wise_results.items %}
+                    <div class="mb-4">
+                        <h5 class="border-bottom pb-2">{{ faculty }}</h5>
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th style="width: 80px;">Rank</th>
+                                        <th>Candidate</th>
+                                        <th style="width: 100px;">Votes</th>
+                                        <th style="width: 200px;">Percentage</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for result in candidates %}
+                                    <tr>
+                                        <td class="text-center">
+                                            {% if forloop.counter == 1 %}
+                                                <span class="badge bg-success rounded-pill">1st</span>
+                                            {% elif forloop.counter == 2 %}
+                                                <span class="badge bg-primary rounded-pill">2nd</span>
+                                            {% elif forloop.counter == 3 %}
+                                                <span class="badge bg-info rounded-pill">3rd</span>
+                                            {% else %}
+                                                {{ forloop.counter }}th
+                                            {% endif %}
+                                        </td>
+                                        <td>{{ result.candidate }}</td>
+                                        <td class="text-center">{{ result.votes }}</td>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <div class="progress flex-grow-1 me-2" style="height: 8px;">
+                                                    <div class="progress-bar {% if forloop.counter == 1 %}bg-success{% elif forloop.counter == 2 %}bg-primary{% elif forloop.counter == 3 %}bg-info{% endif %}" 
+                                                         role="progressbar" 
+                                                         style="width: {{ result.percentage }}%">
+                                                    </div>
+                                                </div>
+                                                <span class="text-muted small">{{ result.percentage }}%</span>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- General Results -->
+            {% if result_data.general_results %}
+            <div class="card shadow-sm">
+                <div class="card-header bg-light">
+                    <h4 class="mb-0">General Positions</h4>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead class="table-light">
+                                <tr>
+                                    <th style="width: 80px;">Rank</th>
+                                    <th>Candidate</th>
+                                    <th style="width: 100px;">Votes</th>
+                                    <th style="width: 200px;">Percentage</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for result in result_data.general_results %}
+                                <tr>
+                                    <td class="text-center">
+                                        {% if forloop.counter == 1 %}
+                                            <span class="badge bg-success rounded-pill">1st</span>
+                                        {% elif forloop.counter == 2 %}
+                                            <span class="badge bg-primary rounded-pill">2nd</span>
+                                        {% elif forloop.counter == 3 %}
+                                            <span class="badge bg-info rounded-pill">3rd</span>
+                                        {% else %}
+                                            {{ forloop.counter }}th
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ result.candidate }}</td>
+                                    <td class="text-center">{{ result.votes }}</td>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="progress flex-grow-1 me-2" style="height: 8px;">
+                                                <div class="progress-bar {% if forloop.counter == 1 %}bg-success{% elif forloop.counter == 2 %}bg-primary{% elif forloop.counter == 3 %}bg-info{% endif %}" 
+                                                     role="progressbar" 
+                                                     style="width: {{ result.percentage }}%">
+                                                </div>
+                                            </div>
+                                            <span class="text-muted small">{{ result.percentage }}%</span>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            {% if not result_data.faculty_wise_results and not result_data.general_results %}
+            <div class="card shadow-sm">
+                <div class="card-body text-center py-5">
+                    <i class="fas fa-chart-bar text-muted fa-3x mb-3"></i>
+                    <h4>No Results Available</h4>
+                    <p class="text-muted mb-0">There are no results to display for the selected filters.</p>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+.progress {
+    background-color: #e9ecef;
+    border-radius: 10px;
+}
+.progress-bar {
+    border-radius: 10px;
+    transition: width 0.6s ease;
+}
+.badge {
+    font-weight: 500;
+    padding: 0.5em 0.8em;
+}
+</style>
+{% endblock %}

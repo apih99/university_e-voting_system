@@ -1,0 +1,215 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load crispy_forms_tags %}
+{% load static %}
+
+{% block head_title %}{% trans "Sign Up" %}{% endblock %}
+
+{% block extra_css %}
+<style>
+.error-message {
+    display: none;
+    margin-top: 1rem;
+}
+.loading-indicator {
+    display: none;
+    margin-left: 0.5rem;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-md-8">
+      <div class="card shadow-sm">
+        <div class="card-body p-4">
+          <div class="text-center mb-4">
+            <h1 class="h3">{% trans "Sign Up" %}</h1>
+            <p class="text-muted">Create your account to participate in university elections</p>
+          </div>
+
+          {% if messages %}
+          <div class="alert alert-info" role="alert">
+            {% for message in messages %}
+            <p {% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</p>
+            {% endfor %}
+          </div>
+          {% endif %}
+
+          {% if form.errors %}
+          <div class="alert alert-danger">
+            <h6 class="alert-heading">Please correct the following errors:</h6>
+            {% for field in form %}
+              {% for error in field.errors %}
+                <p class="mb-0">{{ field.label }}: {{ error }}</p>
+              {% endfor %}
+            {% endfor %}
+            {% for error in form.non_field_errors %}
+              <p class="mb-0">{{ error }}</p>
+            {% endfor %}
+          </div>
+          {% endif %}
+
+          <form class="signup" id="signup_form" method="post" action="{% url 'account_signup' %}">
+            {% csrf_token %}
+            
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                {{ form.username|as_crispy_field }}
+              </div>
+              <div class="col-md-6 mb-3">
+                {{ form.email|as_crispy_field }}
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                {{ form.student_id|as_crispy_field }}
+              </div>
+              <div class="col-md-6 mb-3">
+                {{ form.faculty|as_crispy_field }}
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                {{ form.password1|as_crispy_field }}
+              </div>
+              <div class="col-md-6 mb-3">
+                {{ form.password2|as_crispy_field }}
+              </div>
+            </div>
+
+            {% if redirect_field_value %}
+            <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}" />
+            {% endif %}
+
+            <div class="alert alert-light border mt-4">
+              <h6 class="alert-heading"><i class="fas fa-info-circle me-2"></i>Password Requirements:</h6>
+              <ul class="mb-0 small">
+                <li>At least 8 characters long</li>
+                <li>Must contain both letters and numbers</li>
+                <li>Cannot be too similar to your personal information</li>
+                <li>Cannot be a commonly used password</li>
+              </ul>
+            </div>
+
+            <!-- Error message containers -->
+            <div id="errorMessage" class="alert alert-danger error-message" role="alert">
+              <p class="mb-0"></p>
+            </div>
+            <div id="networkError" class="alert alert-warning error-message" role="alert">
+              <p class="mb-0">Network error occurred. Please try again.</p>
+            </div>
+            <div id="timeoutError" class="alert alert-warning error-message" role="alert">
+              <p class="mb-0">Request timed out. Please try again.</p>
+            </div>
+
+            <div class="d-grid gap-2 mt-4">
+              <button id="signupButton" class="btn btn-primary" type="submit">
+                <span class="button-text">{% trans "Sign Up" %}</span>
+                <div class="loading-indicator spinner-border spinner-border-sm" role="status">
+                  <span class="visually-hidden">Loading...</span>
+                </div>
+              </button>
+            </div>
+
+            <p class="text-center mt-3">
+              {% blocktrans %}Already have an account? Then please <a href="{{ login_url }}">sign in</a>.{% endblocktrans %}
+            </p>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('signup_form');
+    const button = document.getElementById('signupButton');
+    const buttonText = button.querySelector('.button-text');
+    const loadingIndicator = button.querySelector('.loading-indicator');
+    const errorMessage = document.getElementById('errorMessage');
+    const networkError = document.getElementById('networkError');
+    const timeoutError = document.getElementById('timeoutError');
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+    function showError(element, message = null) {
+        if (message) {
+            element.querySelector('p').textContent = message;
+        }
+        element.style.display = 'block';
+    }
+
+    function hideAllErrors() {
+        errorMessage.style.display = 'none';
+        networkError.style.display = 'none';
+        timeoutError.style.display = 'none';
+    }
+
+    function setLoading(isLoading) {
+        button.disabled = isLoading;
+        buttonText.style.display = isLoading ? 'none' : 'inline';
+        loadingIndicator.style.display = isLoading ? 'inline-block' : 'none';
+    }
+
+    form.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        hideAllErrors();
+        setLoading(true);
+
+        const formData = new FormData(form);
+        const timeout = 10000; // 10 seconds timeout
+
+        try {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), timeout);
+
+            const response = await fetch(form.action, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-CSRFToken': csrfToken
+                },
+                signal: controller.signal
+            });
+
+            clearTimeout(timeoutId);
+
+            if (!response.ok) {
+                if (response.status === 400) {
+                    const data = await response.json();
+                    let errorMsg = '';
+                    if (typeof data === 'object') {
+                        for (const [field, errors] of Object.entries(data)) {
+                            errorMsg += `${field}: ${errors.join(', ')}\n`;
+                        }
+                    } else {
+                        errorMsg = data;
+                    }
+                    showError(errorMessage, errorMsg);
+                } else {
+                    showError(networkError);
+                }
+            } else {
+                // Successful signup
+                window.location.href = '{% url "account_login" %}';
+            }
+        } catch (error) {
+            if (error.name === 'AbortError') {
+                showError(timeoutError);
+            } else {
+                showError(networkError);
+                console.error('Signup error:', error);
+            }
+        } finally {
+            setLoading(false);
+        }
+    });
+});
+</script>
+{% endblock %}

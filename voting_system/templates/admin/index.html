@@ -1,0 +1,387 @@
+{% extends "admin/base_site.html" %}
+{% load i18n static %}
+
+{% block extrastyle %}
+{{ block.super }}
+<style>
+    .dashboard-header {
+        margin-bottom: 30px;
+    }
+
+    .dashboard-header h1 {
+        font-size: 24px;
+        font-weight: 600;
+        color: var(--text-primary);
+        margin-bottom: 10px;
+    }
+
+    .dashboard-header p {
+        color: var(--text-secondary);
+        font-size: 16px;
+    }
+
+    .quick-actions {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 24px;
+        margin-bottom: 30px;
+    }
+    
+    .quick-action-card {
+        background: var(--bg-card);
+        border-radius: 12px;
+        box-shadow: 0 4px 12px var(--shadow-color);
+        padding: 24px;
+        text-align: center;
+        transition: all 0.3s ease;
+        border: 1px solid var(--border-color);
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .quick-action-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: var(--primary);
+        transform: scaleX(0);
+        transition: transform 0.3s ease;
+    }
+    
+    .quick-action-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 24px var(--shadow-color);
+        background: var(--bg-hover);
+    }
+    
+    .quick-action-card:hover::before {
+        transform: scaleX(1);
+    }
+    
+    .quick-action-icon {
+        font-size: 2.5em;
+        margin-bottom: 16px;
+        color: var(--primary);
+        height: 60px;
+        width: 60px;
+        line-height: 60px;
+        border-radius: 50%;
+        background: rgba(61, 138, 255, 0.1);
+        margin: 0 auto 16px;
+        transition: all 0.3s ease;
+    }
+    
+    .quick-action-card:hover .quick-action-icon {
+        transform: scale(1.1);
+        background: rgba(61, 138, 255, 0.2);
+    }
+    
+    .quick-action-card h3 {
+        font-size: 18px;
+        font-weight: 600;
+        margin-bottom: 8px;
+        color: var(--text-primary);
+    }
+    
+    .quick-action-card p {
+        color: var(--text-secondary);
+        margin-bottom: 16px;
+        font-size: 14px;
+    }
+    
+    .stats-container {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 24px;
+        margin-bottom: 30px;
+    }
+    
+    .stat-card {
+        background: var(--bg-card);
+        border-radius: 12px;
+        box-shadow: 0 4px 12px var(--shadow-color);
+        padding: 24px;
+        text-align: center;
+        border: 1px solid var(--border-color);
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .stat-card::after {
+        content: '';
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: linear-gradient(
+            45deg,
+            transparent,
+            rgba(61, 138, 255, 0.05),
+            transparent
+        );
+        transform: rotate(45deg);
+        transition: transform 0.6s ease;
+    }
+    
+    .stat-card:hover {
+        transform: translateY(-2px);
+    }
+    
+    .stat-card:hover::after {
+        transform: rotate(45deg) translate(50%, 50%);
+    }
+    
+    .stat-number {
+        font-size: 36px;
+        font-weight: 700;
+        color: var(--primary);
+        margin-bottom: 8px;
+        line-height: 1;
+        text-shadow: 0 0 20px rgba(61, 138, 255, 0.3);
+    }
+    
+    .stat-label {
+        color: var(--text-secondary);
+        font-size: 14px;
+        font-weight: 500;
+    }
+
+    .model-group {
+        margin-bottom: 30px;
+        background: var(--bg-card);
+        border-radius: 12px;
+        box-shadow: 0 4px 12px var(--shadow-color);
+        border: 1px solid var(--border-color);
+        overflow: hidden;
+    }
+
+    .model-group h2 {
+        margin: 0;
+        padding: 20px 24px;
+        font-size: 18px;
+        font-weight: 600;
+        border-bottom: 1px solid var(--border-color);
+        background: var(--bg-darker);
+        color: var(--text-primary);
+    }
+
+    .model-list {
+        padding: 16px 24px;
+    }
+
+    .model-list table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+    }
+
+    .model-list th {
+        text-align: left;
+        padding: 12px 8px;
+        border-bottom: 2px solid var(--border-color);
+        font-weight: 600;
+        color: var(--text-primary);
+        background: var(--bg-darker);
+    }
+
+    .model-list td {
+        padding: 12px 8px;
+        border-bottom: 1px solid var(--border-color);
+        color: var(--text-secondary);
+    }
+
+    .model-list tr:hover td {
+        background: var(--bg-hover);
+    }
+
+    .recent-actions {
+        background: var(--bg-card);
+        border-radius: 12px;
+        box-shadow: 0 4px 12px var(--shadow-color);
+        border: 1px solid var(--border-color);
+        overflow: hidden;
+    }
+
+    .recent-actions h2 {
+        margin: 0;
+        padding: 20px 24px;
+        font-size: 18px;
+        font-weight: 600;
+        border-bottom: 1px solid var(--border-color);
+        background: var(--bg-darker);
+        color: var(--text-primary);
+    }
+
+    .recent-actions-list {
+        padding: 16px 24px;
+    }
+
+    .recent-actions-list ul {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    .recent-actions-list li {
+        padding: 12px;
+        border-bottom: 1px solid var(--border-color);
+        color: var(--text-secondary);
+        font-size: 14px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        transition: background 0.2s ease;
+    }
+
+    .recent-actions-list li:hover {
+        background: var(--bg-hover);
+    }
+
+    .recent-actions-list li:last-child {
+        border-bottom: none;
+    }
+
+    .recent-actions-list i {
+        font-size: 16px;
+        width: 20px;
+        text-align: center;
+    }
+
+    @media (max-width: 768px) {
+        .quick-actions {
+            grid-template-columns: 1fr;
+        }
+        
+        .stats-container {
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        }
+    }
+</style>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+{% endblock %}
+
+{% block coltype %}colMS{% endblock %}
+
+{% block bodyclass %}{{ block.super }} dashboard{% endblock %}
+
+{% block content %}
+<div id="content-main">
+    <div class="dashboard-header">
+        <h1>Welcome to the Administration Panel</h1>
+        <p>Manage elections, users, and view results from this dashboard</p>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="quick-actions">
+        <div class="quick-action-card">
+            <div class="quick-action-icon">
+                <i class="fas fa-vote-yea"></i>
+            </div>
+            <h3>Create Election</h3>
+            <p>Set up a new election with custom rules and settings</p>
+            <a href="{% url 'admin:elections_election_add' %}" class="button">Create New Election</a>
+        </div>
+        <div class="quick-action-card">
+            <div class="quick-action-icon">
+                <i class="fas fa-users"></i>
+            </div>
+            <h3>Manage Users</h3>
+            <p>Add, edit, or review user accounts and roles</p>
+            <a href="{% url 'admin:accounts_user_changelist' %}" class="button">Manage Users</a>
+        </div>
+        <div class="quick-action-card">
+            <div class="quick-action-icon">
+                <i class="fas fa-chart-bar"></i>
+            </div>
+            <h3>View Results</h3>
+            <p>Access election results and analytics</p>
+            <a href="{% url 'admin:elections_electionresult_changelist' %}" class="button">View Results</a>
+        </div>
+    </div>
+
+    <!-- Statistics -->
+    <div class="stats-container">
+        <div class="stat-card">
+            <div class="stat-number">{{ active_elections }}</div>
+            <div class="stat-label">Active Elections</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">{{ total_voters }}</div>
+            <div class="stat-label">Registered Voters</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">{{ completed_elections }}</div>
+            <div class="stat-label">Completed Elections</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">{{ total_votes }}</div>
+            <div class="stat-label">Total Votes Cast</div>
+        </div>
+    </div>
+
+    <!-- App Models -->
+    {% for app in app_list %}
+        {% for model in app.models %}
+        <div class="model-group">
+            <h2>{{ model.name }}</h2>
+            <div class="model-list">
+                {% if model.perms.change or model.perms.add or model.perms.delete %}
+                    <table>
+                        <tr>
+                            <th>Actions</th>
+                            <th>Description</th>
+                        </tr>
+                        {% if model.perms.add %}
+                        <tr>
+                            <td><a href="{{ model.add_url }}" class="addlink">Add</a></td>
+                            <td>Create a new {{ model.name|lower }}</td>
+                        </tr>
+                        {% endif %}
+                        {% if model.perms.change %}
+                        <tr>
+                            <td><a href="{{ model.admin_url }}" class="changelink">Change</a></td>
+                            <td>Modify existing {{ model.name|lower }}s</td>
+                        </tr>
+                        {% endif %}
+                    </table>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    {% endfor %}
+</div>
+
+<div id="content-related">
+    <div class="recent-actions">
+        <h2>{% translate 'Recent Actions' %}</h2>
+        <div class="recent-actions-list">
+            {% load log %}
+            {% get_admin_log 10 as admin_log %}
+            {% if not admin_log %}
+                <p>{% translate 'None available' %}</p>
+            {% else %}
+                <ul>
+                    {% for entry in admin_log %}
+                        <li>
+                            {% if entry.is_addition %}
+                                <i class="fas fa-plus-circle" style="color: var(--success)"></i>
+                            {% elif entry.is_change %}
+                                <i class="fas fa-edit" style="color: var(--warning)"></i>
+                            {% elif entry.is_deletion %}
+                                <i class="fas fa-minus-circle" style="color: var(--error)"></i>
+                            {% endif %}
+                            {{ entry.action_time|timesince }} ago:
+                            {{ entry.object_repr }}
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
